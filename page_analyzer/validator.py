@@ -10,8 +10,5 @@ def to_short_url(url):
 
 
 def is_valid(url):
-    try:
-        validators.url(url)
-        return False
-    except validators.ValidationError:
-        return True
+    return not validators.url(url)
+
