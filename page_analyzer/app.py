@@ -1,5 +1,6 @@
 import os
 
+import requests
 from dotenv import load_dotenv
 from flask import (
     Flask,
@@ -77,9 +78,22 @@ def urls_show(id):
 @app.post('/urls/<id>/checks')
 def urls_checks(id):
     url = repo.find(id)
-    check = repo.save_check(url)
-    if check:
+    try:
+        responce = requests.get(url['name'])
+        responce.raise_for_status()
+        result = {
+            'status_code': responce.status_code
+        }
+    except (requests.ConnectionError, requests.Timeout,
+        requests.TooManyRedirects, requests.HTTPError):
+        result = {'status_code': False}
+        print('request error')
+    
+    if result.get('status_code'):
+        url.update(result)
+        repo.save_check(url)
         flash('Страница успешно проверена', 'success')
+
     else:
         flash('Произошла ошибка при проверке', 'danger')
     return redirect(url_for('url_show', id=id))
