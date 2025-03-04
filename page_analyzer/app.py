@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 from flask import (
     Flask,
     flash,
-    get_flashed_messages,
     redirect,
     render_template,
     request,
@@ -24,11 +23,10 @@ repo = UrlRepository(db_url)
 
 @app.route('/')
 def index():
-    messages = get_flashed_messages(with_categories=True)
     return render_template(
         'index.html',
-        messages=messages
-    )
+        url=''    
+    )   
 
 
 @app.route('/urls')
@@ -36,25 +34,28 @@ def urls_get():
     urls = repo.get_content()
     return render_template(
         'urls.html',
-        urls=urls,
+        urls=urls
     )
 
 
-@app.post('/')
+@app.post('/urls')
 def urls_post():
     data = request.form.to_dict()
     new_url = to_short_url(data['url'])
-    data['url'] = new_url
     errors = is_valid(new_url)
     if errors:
         flash('Некорректный URL', 'danger')
-        return render_template('index.html')
+        return render_template(
+            'index.html',
+            url=data['url']  
+        )
     else:
         curr_url = repo.get_by_url(new_url)
         if curr_url:
             flash('Страница уже существует', 'info')
             return redirect(url_for('urls_show', id=curr_url['id']))
         else:
+            data['url'] = new_url
             repo.save(data)
             flash('Страница успешно добавлена', 'success')
             return redirect(url_for('urls_show', id=data['id']))
@@ -62,14 +63,23 @@ def urls_post():
 
 @app.route('/urls/<id>')
 def urls_show(id):
-    messages = get_flashed_messages(with_categories=True)
-    url = repo.find(id)  
+    url = repo.find(id)
+    url_checks = repo.get_all_checks(id) 
     if url is None:
         render_template('not_found.html')
     return render_template(
         'url_show.html',
-        messages=messages,
-        url=url
+        url=url,
+        url_checks=url_checks
     )
 
 
+@app.post('/urls/<id>/checks')
+def urls_checks(id):
+    url = repo.find(id)
+    check = repo.save_check(url)
+    if check:
+        flash('Страница успешно проверена', 'success')
+    else:
+        flash('Произошла ошибка при проверке', 'danger')
+    return redirect(url_for('url_show', id=id))
