@@ -60,9 +60,11 @@ class UrlRepository:
         today = date(now.year, now.month, now.day)
         with self.conn.cursor() as cur:
             cur.execute(
-                """INSERT INTO url_checks (url_id, status_code, created_at)
-                VALUES (%s, %s, %s) RETURNING id""",
-             (url['id'], url['status_code'], today)
+                """INSERT INTO url_checks (url_id, status_code, h1,
+                title, description, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s) RETURNING id""",
+             (url['id'], url['status_code'], url['h1'],
+             url['title'], url['description'], today)
             )
         self.conn.commit()        
 

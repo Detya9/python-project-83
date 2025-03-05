@@ -1,6 +1,7 @@
 import os
 
 import requests
+from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from flask import (
     Flask,
@@ -79,21 +80,26 @@ def urls_show(id):
 def urls_checks(id):
     url = repo.find(id)
     try:
-        responce = requests.get(url['name'])
-        responce.raise_for_status()
+        response = requests.get(url['name'])
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, "lxml")
+        h1 = soup.find('h1')
+        title = soup.find('tittle')
+        meta = soup.find('meta', {'name': 'description'})
+        if meta:
+            description = meta.get('content')
+        else:
+            description = None
         result = {
-            'status_code': responce.status_code
+            'status_code': response.status_code,
+            'h1': h1.text if title else None,
+            'title': title.text if title else None,
+            'description': description
         }
-    except (requests.ConnectionError, requests.Timeout,
-        requests.TooManyRedirects, requests.HTTPError):
-        result = {'status_code': False}
-        print('request error')
-    
-    if result.get('status_code'):
         url.update(result)
         repo.save_check(url)
         flash('Страница успешно проверена', 'success')
 
-    else:
+    except requests.exceptions.RequestException:
         flash('Произошла ошибка при проверке', 'danger')
     return redirect(url_for('url_show', id=id))
