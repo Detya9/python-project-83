@@ -1,16 +1,12 @@
 from datetime import date, datetime
 
-import psycopg2
 from psycopg2.extras import RealDictCursor
 
 
 class UrlRepository:
-    def __init__(self, db_url):
-        try:
-            self.conn = psycopg2.connect(db_url)
-        except:  # noqa: E722
-            print('Can`t establish connection to database')
-
+    def __init__(self, conn):
+        self.conn = conn
+  
     def get_content(self):
         with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute("SELECT id, name FROM urls ORDER BY id DESC")

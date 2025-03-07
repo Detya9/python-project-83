@@ -1,7 +1,7 @@
 import os
 
+import psycopg2
 import requests
-from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from flask import (
     Flask,
@@ -12,15 +12,16 @@ from flask import (
     url_for,
 )
 
+from page_analyzer.parser import get_dict_content
 from page_analyzer.url_repository import UrlRepository
 from page_analyzer.validator import is_valid, to_short_url
 
 load_dotenv()
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
-db_url = os.getenv('DATABASE_URL')
-app.config['DATABASE_URL'] = db_url
-repo = UrlRepository(db_url)
+app.config['DATABASE_URL'] = os.getenv('DATABASE_URL')
+conn = psycopg2.connect(app.config['DATABASE_URL'])
+repo = UrlRepository(conn)
 
 
 @app.route('/')
@@ -44,13 +45,12 @@ def urls_get():
 def urls_post():
     data = request.form.to_dict()
     new_url = to_short_url(data['url'])
-    errors = is_valid(new_url)
-    if errors:
+    if is_valid(new_url):
         flash('Некорректный URL', 'danger')
         return render_template(
             'index.html',
             url=data['url']  
-        )
+        ), 422
     else:
         curr_url = repo.get_by_url(new_url)
         if curr_url:
@@ -68,7 +68,7 @@ def urls_show(id):
     url = repo.find(id)
     url_checks = repo.get_all_checks(id) 
     if url is None:
-        render_template('not_found.html')
+        render_template('not_found.html'), 422
     return render_template(
         'url_show.html',
         url=url,
@@ -82,21 +82,8 @@ def urls_checks(id):
     try:
         response = requests.get(url['name'])
         response.raise_for_status()
-        soup = BeautifulSoup(response.text, "lxml")
-        h1 = soup.find('h1')
-        title = soup.find('tittle')
-        meta = soup.find('meta', {'name': 'description'})
-        if meta:
-            description = meta.get('content')
-        else:
-            description = None
-        result = {
-            'status_code': response.status_code,
-            'h1': h1.text if title else None,
-            'title': title.text if title else None,
-            'description': description
-        }
-        url.update(result)
+        result = get_dict_content(response.text)
+        url.update({'status_code': response.status_code, **result})
         repo.save_check(url)
         flash('Страница успешно проверена', 'success')
 
