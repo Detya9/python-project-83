@@ -19,7 +19,7 @@ from page_analyzer.validator import is_valid, to_short_url
 load_dotenv()
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
-app.config['DATABASE_URL'] = os.getenv('URL')
+app.config['DATABASE_URL'] = os.getenv('DATABASE_URL')
 conn = psycopg2.connect(app.config['DATABASE_URL'])
 repo = UrlRepository(conn)
 

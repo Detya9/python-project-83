@@ -20,7 +20,7 @@ class UrlRepository:
                 ORDER BY url_id, created_at DESC;
             """)            
             last_checks = [dict(row) for row in cur]
-            url_checks = {check['url_id']: check for check in last_checks}        
+            url_checks = {check['url_id']: check for check in last_checks}
             for url in all_urls:
                 check = url_checks.get(url['id'])
                 url['last_check'] = check.get('last_check') if check else ''
