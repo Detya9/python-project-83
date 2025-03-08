@@ -19,7 +19,7 @@ from page_analyzer.validator import is_valid, to_short_url
 load_dotenv()
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
-app.config['DATABASE_URL'] = os.getenv('DATABASE_URL')
+app.config['DATABASE_URL'] = os.getenv('URL')
 conn = psycopg2.connect(app.config['DATABASE_URL'])
 repo = UrlRepository(conn)
 
@@ -89,4 +89,4 @@ def urls_checks(id):
 
     except requests.exceptions.RequestException:
         flash('Произошла ошибка при проверке', 'danger')
-    return redirect(url_for('url_show', id=id))
+    return redirect(url_for('urls_show', id=id))
