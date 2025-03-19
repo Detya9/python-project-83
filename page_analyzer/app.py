@@ -14,7 +14,7 @@ from flask import (
 
 from page_analyzer.parser import get_dict_content
 from page_analyzer.url_repository import UrlRepository
-from page_analyzer.validator import is_valid, to_short_url
+from page_analyzer.validator import to_short_url, validate
 
 load_dotenv()
 app = Flask(__name__)
@@ -45,30 +45,30 @@ def urls_get():
 def urls_post():
     data = request.form.to_dict()
     new_url = to_short_url(data['url'])
-    if is_valid(new_url):
-        flash('Некорректный URL', 'danger')
+    errors = validate(new_url)
+    if errors:
+        flash(f'{errors}', 'danger')
         return render_template(
             'index.html',
             url=data['url']  
         ), 422
     else:
-        curr_url = repo.get_by_url(new_url)
+        curr_url = repo.get_by_name(new_url)
         if curr_url:
             flash('Страница уже существует', 'info')
             return redirect(url_for('urls_show', id=curr_url['id']))
         else:
-            data['url'] = new_url
-            repo.save(data)
+            id = repo.save(new_url)
             flash('Страница успешно добавлена', 'success')
-            return redirect(url_for('urls_show', id=data['id']))
+            return redirect(url_for('urls_show', id=id))
 
 
 @app.route('/urls/<id>')
 def urls_show(id):
     url = repo.find(id)
-    url_checks = repo.get_all_checks(id) 
     if url is None:
         render_template('not_found.html'), 422
+    url_checks = repo.get_all_checks(id)
     return render_template(
         'url_show.html',
         url=url,

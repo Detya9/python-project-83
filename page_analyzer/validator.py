@@ -9,6 +9,7 @@ def to_short_url(url):
     return urlunparse(short_url)
 
 
-def is_valid(url):
-    return not validators.url(url)
+def validate(url):
+    if not validators.url(url):
+        return 'Некорректный URL'
 

@@ -35,7 +35,7 @@ class UrlRepository:
                 row = cur.fetchone()
                 return dict(row) if row else None
 
-    def get_by_url(self, url):
+    def get_by_name(self, url):
         with self.conn as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cur:
                 cur.execute("SELECT * FROM urls WHERE name = %s", (url,))
@@ -48,12 +48,12 @@ class UrlRepository:
             with conn.cursor() as cur:
                 cur.execute(
                     """INSERT INTO urls (name, created_at)
-                    VALUES (%s, %s) RETURNING id""", (url['url'], today)
+                    VALUES (%s, %s) RETURNING id""", (url, today)
                 )
                 id = cur.fetchone()[0]
-                url['id'] = id
             conn.commit()
-    
+        return id
+        
     def save_check(self, url):
         today = date.today()
         with self.conn as conn:
