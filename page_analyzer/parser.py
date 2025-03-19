@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 
 
-def get_dict_content(html_content):
+def get_seo_content(html_content):
     soup = BeautifulSoup(html_content, "lxml")
     h1 = soup.find('h1')
     title = soup.find('title')

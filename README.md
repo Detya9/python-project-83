@@ -7,7 +7,7 @@
 [![Python CI](https://github.com/Detya9/python-project-83/actions/workflows/pythonCI.yml/badge.svg?branch=main)](https://github.com/Detya9/python-project-83/actions/workflows/pythonCI.yml)
 
 ### Used tools:
-Python, HTTP, Flask, PostgreSQL, Bootstrap, requests, BeautifulSoup, gunicorn
+Python, Flask, PostgreSQL, Bootstrap, requests, BeautifulSoup, gunicorn
 ### Installation:
 First of all you need to install uv:
 ```

@@ -73,7 +73,7 @@ class UrlRepository:
                 cur.execute("""SELECT * FROM url_checks
                             WHERE url_id=%s
                             ORDER BY created_at DESC""", (id,))
-                return [dict(row) for row in cur]       
+                return cur.fetchall()      
 
 
 

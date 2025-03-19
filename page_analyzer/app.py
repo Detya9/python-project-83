@@ -12,9 +12,9 @@ from flask import (
     url_for,
 )
 
-from page_analyzer.parser import get_dict_content
+from page_analyzer.parser import get_seo_content
+from page_analyzer.url import to_short_url, validate
 from page_analyzer.url_repository import UrlRepository
-from page_analyzer.validator import to_short_url, validate
 
 load_dotenv()
 app = Flask(__name__)
@@ -45,9 +45,9 @@ def urls_get():
 def urls_post():
     data = request.form.to_dict()
     new_url = to_short_url(data['url'])
-    errors = validate(new_url)
-    if errors:
-        flash(f'{errors}', 'danger')
+    error = validate(new_url)
+    if error:
+        flash(f'{error}', 'danger')
         return render_template(
             'index.html',
             url=data['url']  
@@ -82,7 +82,7 @@ def urls_checks(id):
     try:
         response = requests.get(url['name'])
         response.raise_for_status()
-        result = get_dict_content(response.text)
+        result = get_seo_content(response.text)
         url.update({'status_code': response.status_code, **result})
         repo.save_check(url)
         flash('Страница успешно проверена', 'success')
